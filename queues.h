@@ -2,6 +2,9 @@
 #include <queue>
 #include <mutex>
 
+bool g_programRunning = true;
+#define NUMBER_OF_PROCESSES  3
+
 class MessageQueue {
     std::queue<int> messages;   // queue of send times
     std::mutex messageMutex;    // mutex!
@@ -40,6 +43,6 @@ MessageQueue messageQueue0;
 MessageQueue messageQueue1;
 MessageQueue messageQueue2;
 
-MessageQueue* messageQueues[3] =  {&messageQueue0, &messageQueue1, &messageQueue2};
+MessageQueue* messageQueues[NUMBER_OF_PROCESSES] =  {&messageQueue0, &messageQueue1, &messageQueue2};
 
 
