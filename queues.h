@@ -3,16 +3,35 @@
 #include <mutex>
 
 class MessageQueue {
-    std::queue<int> messages;
-    std::mutex messageMutex;
+    std::queue<int> messages;   // queue of send times
+    std::mutex messageMutex;    // mutex!
 
-    void addMessage() {
-        
+    // Add messages to data 
+    void addMessage(int logicalClockTime) {
+        messageMutex.lock();
+
+        messages.push(logicalClockTime);
+
+        messageMutex.unlock();
     }
 
-    // Returns message
+    // Returns tuple of the message and the size of the queue
     std::pair<int,int> readMessage() {
-        // Return <-1, 0 if nothing in the queue>
+        messageMutex.lock();
+
+        std::pair<int,int> returnVal;
+
+        if (messages.size() == 0) {
+            returnVal.first = -1;
+            returnVal.second = 0;
+        } else {
+            returnVal.first = messages.front();
+            messages.pop();
+            returnVal.second = messages.size();
+        }
+
+        messageMutex.unlock();
+        return returnVal;
 
     }
 };
