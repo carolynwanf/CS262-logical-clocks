@@ -9,6 +9,7 @@ class MessageQueue {
     std::queue<int> messages;   // queue of send times
     std::mutex messageMutex;    // mutex!
 
+public:
     // Add messages to data 
     void addMessage(int logicalClockTime) {
         messageMutex.lock();
