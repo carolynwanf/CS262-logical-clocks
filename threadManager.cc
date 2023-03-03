@@ -12,18 +12,6 @@ int main(void) {
         threads.push_back(std::move(newThread));
     }
 
-    // while (true) {
-    //     endTime = std::chrono::system_clock::now();
-    //     std::chrono::duration<double> elapsedSeconds = endTime-startTime;
-
-    //     // Set global telling threads to run to false once a minute has elapsed
-    //     std::cout << "We're here in main function" << std::endl;
-    //     if (elapsedSeconds.count() < (double) 60) {
-    //         g_programRunning = false;
-    //         break;
-    //     }
-    //     std::cout << "We're here in main function" << std::endl;
-    // }
     std::this_thread::sleep_for(std::chrono::seconds(60));
     g_programRunning = false;
 

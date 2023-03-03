@@ -1,7 +1,6 @@
 #include "queues.h"
 
 #include <cstdlib>
-#include <thread>
 #include <chrono>
 #include <string>
 #include <fstream>
@@ -29,7 +28,7 @@ void clockThread(int queueID) {
     while(g_programRunning) {
         std::this_thread::sleep_for(std::chrono::microseconds(microsecondSleep));
 
-        std::pair clockVal_queueLength = messageQueues[queueID]->readMessage();
+        std::pair<int, int> clockVal_queueLength = messageQueues[queueID]->readMessage();
         auto globalTime = std::chrono::system_clock::now();
         std::time_t globalTime_t = std::chrono::system_clock::to_time_t(globalTime);
         std::string systemTimeString = std::ctime(&globalTime_t);
