@@ -1,7 +1,11 @@
-#include<iostream>
+#include <iostream>
 #include <queue>
 #include <mutex>
 #include <thread>
+#include <fstream>
+#include <string>
+#include <cstdlib>
+#include <chrono>
 
 bool g_programRunning = true;
 #define NUMBER_OF_PROCESSES  3
@@ -46,5 +50,4 @@ MessageQueue messageQueue1;
 MessageQueue messageQueue2;
 
 MessageQueue* messageQueues[NUMBER_OF_PROCESSES] =  {&messageQueue0, &messageQueue1, &messageQueue2};
-
 

@@ -7,6 +7,7 @@ int main(void) {
     auto startTime = std::chrono::system_clock::now();
     auto endTime = std::chrono::system_clock::now();
 
+    srand(time(0));
     for (int i = 0; i < NUMBER_OF_PROCESSES; i++) {
         std::thread newThread(clockThread, i);
         threads.push_back(std::move(newThread));
