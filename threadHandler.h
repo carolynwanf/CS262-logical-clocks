@@ -39,8 +39,7 @@ void clockThread(int queueID) {
         }
 
 
-        // TODO: we only make it here if there was no message in queue, send message and update clock
-        int dieRoll = rand() % 5;
+        int dieRoll = rand() % 10;
         filewriter << std::to_string(true) << ",";
         switch (dieRoll)
         {

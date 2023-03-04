@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package logicalclockservice;
+
+service LogicalClockService {
+    rpc SendMessage(LogicalClockTime) returns (Reply);
+}
+
+message LogicalClockTime {
+    int32 time=1;
+}
+
+message Reply {
+    string errorMsg=1;
+}
