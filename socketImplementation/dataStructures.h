@@ -90,8 +90,8 @@ public:
             returnVal.second = 0;
         } else {
             returnVal.first = messages.front();
-            messages.pop();
             returnVal.second = messages.size();
+            messages.pop();
         }
 
         messageMutex.unlock();
