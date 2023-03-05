@@ -1,0 +1,89 @@
+
+#include "handleSockets.h"
+
+#define SEND_MESSAGE_TO_ONE     0
+#define SEND_MESSAGE_TO_OTHER   1
+#define SEND_MESSAGE_TO_BOTH    2
+
+void clockThread(int processID, FileDescriptors fileDescriptors) {
+    std::thread readingThread(readFromSockets, fileDescriptors, processID);
+
+    // Generate random clockspeed from 1-6
+    int clockSpeed = (rand() % 6) + 1;
+    // There are 1,000,000 microseconds in 1 seconds, so we divide that by clockspeed to
+    //      find the number of microseconds (floored) that the machine should sleep for
+    const int microsecondSleep = 1000000 / clockSpeed;
+
+    std::string filename = "machine"+std::to_string(processID)+"clock_speed"+std::to_string(clockSpeed)+"log.csv";
+
+    // initialize CSV file
+    std::ofstream filewriter;
+    filewriter.open(filename);
+    filewriter << "was_die_roll,sent_message,message_received,system_time,logical_clock_time,length_of_queue\n";
+
+    int clockTime = 0;
+    
+    while(g_programRunning) {
+        std::this_thread::sleep_for(std::chrono::microseconds(microsecondSleep));
+
+        std::pair<int, int> clockVal_queueLength = messageQueues[processID]->readMessage();
+        auto globalTime = std::chrono::system_clock::now();
+        std::time_t globalTime_t = std::chrono::system_clock::to_time_t(globalTime);
+        std::string systemTimeString = std::ctime(&globalTime_t);
+        systemTimeString.pop_back();
+        // if queue was not empty
+        if (clockVal_queueLength.first != -1) {
+            filewriter << std::to_string(false) << "," << std::to_string(false) << "," << std::to_string(true) 
+                        << "," << std::to_string(globalTime_t) << "," << std::to_string(clockTime) << "," << clockVal_queueLength.second << std::endl;
+            clockTime = std::max(clockVal_queueLength.first, clockTime) + 1;
+            continue;
+        }
+
+
+        int dieRoll = rand() % 5;
+        filewriter << std::to_string(true) << ",";
+        switch (dieRoll)
+        {
+        case SEND_MESSAGE_TO_ONE:
+            {
+                send(fileDescriptors.write1Fd, &clockTime, sizeof(clockTime), 0);
+                filewriter << std::to_string(true) << "," << std::to_string(false) << "," << std::to_string(globalTime_t)
+                            << "," << std::to_string(clockTime) << "," << std::to_string(clockVal_queueLength.second) << std::endl;
+                clockTime++;
+            }
+            break;
+        
+        case SEND_MESSAGE_TO_OTHER:
+            {
+                send(fileDescriptors.write2Fd, &clockTime, sizeof(clockTime), 0);
+                filewriter << std::to_string(true) << "," << std::to_string(false) << "," << std::to_string(globalTime_t)
+                            << "," << std::to_string(clockTime) << "," << std::to_string(clockVal_queueLength.second) << std::endl;
+                clockTime++;
+            }
+            break;
+        
+        case SEND_MESSAGE_TO_BOTH:
+            {
+                send(fileDescriptors.write1Fd, &clockTime, sizeof(clockTime), 0);
+                send(fileDescriptors.write2Fd, &clockTime, sizeof(clockTime), 0);
+                filewriter << std::to_string(true) << "," << std::to_string(false) << "," << std::to_string(globalTime_t)
+                            << "," << std::to_string(clockTime) << "," << std::to_string(clockVal_queueLength.second) << std::endl;
+                clockTime++;
+            }
+            break;
+        
+        default:
+            filewriter << std::to_string(false) << "," << std::to_string(false) << "," << std::to_string(globalTime_t)
+                        << "," << std::to_string(clockTime) << "," << std::to_string(clockVal_queueLength.second) << std::endl;
+            clockTime++;
+            break;
+        }
+    }
+
+    filewriter.close();
+
+    readingThread.join();
+
+    std::string threadExitReturnVal = "Thread exited";
+    pthread_exit(&threadExitReturnVal);
+}
