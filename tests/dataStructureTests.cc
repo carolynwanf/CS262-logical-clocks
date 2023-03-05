@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "../queues.h"
+#include "../dataStructures.h"
 
 TEST(QueueTest, OneThread) {
     MessageQueue testMessageQueue;
@@ -21,7 +21,7 @@ TEST(QueueTest, OneThread) {
         std::pair<int,int> messagePair = testMessageQueue.readMessage();
 
         EXPECT_EQ(messagePair.first, i);
-        EXPECT_EQ(messagePair.second, QUEUE_LENGTH - (i+1));
+        EXPECT_EQ(messagePair.second, QUEUE_LENGTH - (i));
     }
 
     // Nothing in queue again

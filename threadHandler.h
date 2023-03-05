@@ -1,19 +1,20 @@
-#include "queues.h"
 
+#include "handleSockets.h"
 
 #define SEND_MESSAGE_TO_ONE     0
 #define SEND_MESSAGE_TO_OTHER   1
 #define SEND_MESSAGE_TO_BOTH    2
 
-void clockThread(int queueID) {
+void clockThread(int processID, FileDescriptors fileDescriptors) {
+    std::thread readingThread(readFromSockets, fileDescriptors, processID);
 
-    // Generate random clockspeed from 1-6
-    int clockSpeed = (rand() % 6) + 1;
+    // Generate random clockspeed from 1-3
+    int clockSpeed = (rand() % 1) + 6;
     // There are 1,000,000 microseconds in 1 seconds, so we divide that by clockspeed to
     //      find the number of microseconds (floored) that the machine should sleep for
     const int microsecondSleep = 1000000 / clockSpeed;
 
-    std::string filename = "machine"+std::to_string(queueID)+"clock_speed"+std::to_string(clockSpeed)+"log.csv";
+    std::string filename = "machine"+std::to_string(processID)+"clock_speed"+std::to_string(clockSpeed)+"log.csv";
 
     // initialize CSV file
     std::ofstream filewriter;
@@ -25,7 +26,7 @@ void clockThread(int queueID) {
     while(g_programRunning) {
         std::this_thread::sleep_for(std::chrono::microseconds(microsecondSleep));
 
-        std::pair<int, int> clockVal_queueLength = messageQueues[queueID]->readMessage();
+        std::pair<int, int> clockVal_queueLength = messageQueues[processID]->readMessage();
         auto globalTime = std::chrono::system_clock::now();
         std::time_t globalTime_t = std::chrono::system_clock::to_time_t(globalTime);
         std::string systemTimeString = std::ctime(&globalTime_t);
@@ -45,8 +46,7 @@ void clockThread(int queueID) {
         {
         case SEND_MESSAGE_TO_ONE:
             {
-                int sendID = (queueID + 1) % 3;
-                messageQueues[sendID]->addMessage(clockTime);
+                send(fileDescriptors.write1Fd, &clockTime, sizeof(clockTime), 0);
                 filewriter << std::to_string(true) << "," << std::to_string(false) << "," << std::to_string(globalTime_t)
                             << "," << std::to_string(clockTime) << "," << std::to_string(clockVal_queueLength.second) << std::endl;
                 clockTime++;
@@ -55,8 +55,7 @@ void clockThread(int queueID) {
         
         case SEND_MESSAGE_TO_OTHER:
             {
-                int sendID = (queueID + 2) % 3;
-                messageQueues[sendID]->addMessage(clockTime);
+                send(fileDescriptors.write2Fd, &clockTime, sizeof(clockTime), 0);
                 filewriter << std::to_string(true) << "," << std::to_string(false) << "," << std::to_string(globalTime_t)
                             << "," << std::to_string(clockTime) << "," << std::to_string(clockVal_queueLength.second) << std::endl;
                 clockTime++;
@@ -65,10 +64,8 @@ void clockThread(int queueID) {
         
         case SEND_MESSAGE_TO_BOTH:
             {
-                int firstSendID = (queueID + 1) % 3;
-                int secondSendID = (queueID + 2) % 3;
-                messageQueues[firstSendID]->addMessage(clockTime);
-                messageQueues[secondSendID]->addMessage(clockTime);
+                send(fileDescriptors.write1Fd, &clockTime, sizeof(clockTime), 0);
+                send(fileDescriptors.write2Fd, &clockTime, sizeof(clockTime), 0);
                 filewriter << std::to_string(true) << "," << std::to_string(false) << "," << std::to_string(globalTime_t)
                             << "," << std::to_string(clockTime) << "," << std::to_string(clockVal_queueLength.second) << std::endl;
                 clockTime++;
@@ -84,6 +81,9 @@ void clockThread(int queueID) {
     }
 
     filewriter.close();
+
+    readingThread.join();
+
     std::string threadExitReturnVal = "Thread exited";
     pthread_exit(&threadExitReturnVal);
 }
