@@ -39,7 +39,7 @@ void readFromSockets(FileDescriptors fileDescriptors, int queueID) {
         if (valread != -1) {
             messageQueues[queueID]->addMessage(receivedMsg);
         }
-        valread = recv(fileDescriptors.read1Fd, &receivedMsg, sizeof(receivedMsg), MSG_DONTWAIT);
+        valread = recv(fileDescriptors.read2Fd, &receivedMsg, sizeof(receivedMsg), MSG_DONTWAIT);
         if (valread != -1) {
             messageQueues[queueID]->addMessage(receivedMsg);
         }
