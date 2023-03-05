@@ -8,8 +8,8 @@
 void clockThread(int processID, FileDescriptors fileDescriptors) {
     std::thread readingThread(readFromSockets, fileDescriptors, processID);
 
-    // Generate random clockspeed from 1-6
-    int clockSpeed = (rand() % 6) + 1;
+    // Generate random clockspeed from 1-3
+    int clockSpeed = (rand() % 2) + 5;
     // There are 1,000,000 microseconds in 1 seconds, so we divide that by clockspeed to
     //      find the number of microseconds (floored) that the machine should sleep for
     const int microsecondSleep = 1000000 / clockSpeed;
@@ -40,7 +40,7 @@ void clockThread(int processID, FileDescriptors fileDescriptors) {
         }
 
 
-        int dieRoll = rand() % 5;
+        int dieRoll = rand() % 10;
         filewriter << std::to_string(true) << ",";
         switch (dieRoll)
         {
