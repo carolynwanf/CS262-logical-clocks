@@ -16,16 +16,16 @@ FetchContent_MakeAvailable(googletest)
 enable_testing()
 
 add_executable(
-  queueTests
-  ./tests/queueTests.cc
+  dataStructureTests
+  ./tests/dataStructureTests.cc
 ) 
 
 target_link_libraries(
-  queueTests
+  dataStructureTests
   gtest
   gtest_main
 )
 
 include(GoogleTest)
 # gtest_discover_tests(storageTests)
-gtest_add_tests(TARGET queueTests)
+gtest_add_tests(TARGET dataStructureTests)
