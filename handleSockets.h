@@ -75,7 +75,7 @@ int bindSocketToPort(int opt, int port) {
         exit(EXIT_FAILURE);
     }
 
-    // Forcefully attaching socket to the port 8080
+    // Setting socket options
     if (setsockopt(server_fd, SOL_SOCKET,
                 SO_REUSEADDR, &opt,
                 sizeof(opt))) {

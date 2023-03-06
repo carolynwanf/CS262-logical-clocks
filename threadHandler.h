@@ -5,7 +5,9 @@
 #define SEND_MESSAGE_TO_OTHER   1
 #define SEND_MESSAGE_TO_BOTH    2
 
+// Function that handles logic for modeling our threads as virtual machiens
 void clockThread(int processID, FileDescriptors fileDescriptors) {
+    // Reads constantly in the background
     std::thread readingThread(readFromSockets, fileDescriptors, processID);
 
     // Generate random clockspeed from 1-3
@@ -26,12 +28,14 @@ void clockThread(int processID, FileDescriptors fileDescriptors) {
     while(g_programRunning) {
         std::this_thread::sleep_for(std::chrono::microseconds(microsecondSleep));
 
+        // Attempts to read a message
         std::pair<int, int> clockVal_queueLength = messageQueues[processID]->readMessage();
         auto globalTime = std::chrono::system_clock::now();
         std::time_t globalTime_t = std::chrono::system_clock::to_time_t(globalTime);
         std::string systemTimeString = std::ctime(&globalTime_t);
         systemTimeString.pop_back();
-        // if queue was not empty
+
+        // If queue was not empty
         if (clockVal_queueLength.first != -1) {
             filewriter << std::to_string(false) << "," << std::to_string(false) << "," << std::to_string(true) 
                         << "," << std::to_string(globalTime_t) << "," << std::to_string(clockTime) << "," << clockVal_queueLength.second << std::endl;
@@ -40,6 +44,7 @@ void clockThread(int processID, FileDescriptors fileDescriptors) {
         }
 
 
+        // If queue was empty, perform a dieRoll
         int dieRoll = rand() % 10;
         filewriter << std::to_string(true) << ",";
         switch (dieRoll)
@@ -80,10 +85,9 @@ void clockThread(int processID, FileDescriptors fileDescriptors) {
         }
     }
 
+    // Cleanup
     filewriter.close();
-
     readingThread.join();
-
     std::string threadExitReturnVal = "Thread exited";
     pthread_exit(&threadExitReturnVal);
 }

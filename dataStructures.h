@@ -12,6 +12,15 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 
+// Globals
+#define NUMBER_OF_PROCESSES  3
+
+int g_backlogSize = 20;
+bool g_programRunning = true;
+
+sockaddr_in address;
+int addrlen = sizeof(address);
+
 // File descriptors for each thread
 class FileDescriptors {
 
@@ -30,6 +39,7 @@ class FileDescriptors {
             read2Fd = -1;
         };
 
+        // Adding a file descriptor for the server side of the socket
         void addReadFd(int fd) {
             std::cout << "Adding read fd " << fd << std::endl;
 
@@ -40,6 +50,7 @@ class FileDescriptors {
             }
         }
 
+        // Adding a file descriptor for the client side of the socket
         void addWriteFd(int fd) {
             std::cout << "Adding write fd " << fd << std::endl;
             if (write1Fd == -1) {
@@ -53,6 +64,7 @@ class FileDescriptors {
             serverFd = fd;
         }
 
+        // Print values for debugging
         void printValues() {
             std::cout << "Server FD: " << serverFd << std::endl;
             std::cout << "Write 1 FD: " << write1Fd << std::endl;
@@ -70,7 +82,7 @@ class MessageQueue {
     std::mutex messageMutex;    // mutex!
 
 public:
-    // Add messages to data 
+    // Add message to messages
     void addMessage(int logicalClockTime) {
         messageMutex.lock();
 
@@ -100,18 +112,10 @@ public:
     }
 };
 
-#define NUMBER_OF_PROCESSES  3
-
 MessageQueue messageQueue0;
 MessageQueue messageQueue1;
 MessageQueue messageQueue2;
 
 MessageQueue* messageQueues[NUMBER_OF_PROCESSES] =  {&messageQueue0, &messageQueue1, &messageQueue2};
-
-int g_backlogSize = 20;
-bool g_programRunning = true;
-
-sockaddr_in address;
-int addrlen = sizeof(address);
 
 std::vector<FileDescriptors> fileDescriptorsVector;

@@ -32,6 +32,8 @@ TEST(QueueTest, OneThread) {
     EXPECT_EQ(messagePair2.second, 0);
 
 }
+
+// Wrapper for adding messages to feed into thread
 void addMessageWrapper(int num, MessageQueue* messageQueuePointer, int msg) {
     for (int i = 0; i < num; i++) {
         messageQueuePointer->addMessage(msg);
@@ -70,6 +72,7 @@ TEST(QueueTest, MultiThreadedAdd) {
 
 }
 
+// Wrapper for reading messages to feed into thread
 void readMessageWrapper(MessageQueue* messageQueuePointer, std::set<int>* messageValuesPointer, std::mutex* messageValuesMutexPointer) {
     std::pair<int, int> messagePair = messageQueuePointer->readMessage();
     messageValuesMutexPointer->lock();
@@ -113,10 +116,13 @@ TEST(QueueTest, MultiThreadedRead) {
 }
 
 TEST(ConnectionTest, EstablishingConnection) {
+
+    // Listing ports
     int port0 = 8080;
     int port1 = 8081;
     int port2 = 8082;
 
+    // Setting up fileDescriptors vector
     FileDescriptors fileDescriptors0;
     FileDescriptors fileDescriptors1;
     FileDescriptors fileDescriptors2;
@@ -125,7 +131,7 @@ TEST(ConnectionTest, EstablishingConnection) {
     fileDescriptorsVector.push_back(fileDescriptors1);
     fileDescriptorsVector.push_back(fileDescriptors2);
 
-    // Check if IP address is valid
+    // CHECK if IP address is valid
     char* ip_addr = getIPAddress();
 
     struct sockaddr_in sa;
@@ -133,7 +139,7 @@ TEST(ConnectionTest, EstablishingConnection) {
 
     EXPECT_NE(result, -1);
 
-    // Check if server fds are valid
+    // CHECK if server fds are valid
     int server_fd0 = bindSocketToPort(1, port0);
     int server_fd1 = bindSocketToPort(1, port1);
     int server_fd2 = bindSocketToPort(1, port2);
@@ -142,13 +148,13 @@ TEST(ConnectionTest, EstablishingConnection) {
     EXPECT_GT(server_fd1, -1);
     EXPECT_GT(server_fd2, -1);
 
-    // Check that client fds are valid
+    // CHECK that client fds are valid
     std::thread t1(listenForConnections, server_fd0, 0);
     std::thread t2(listenForConnections, server_fd1, 1);
     std::thread t3(listenForConnections, server_fd2, 2);
 
     // Add two connections per port
-    // Check that the write and read FDs are all valid
+    // CHECK that the write and read FDs are all valid
     // Connections for machine 0
     int write_fd1_m0 = getWriteFd(port1, ip_addr);
     int write_fd2_m0 = getWriteFd(port2, ip_addr);
@@ -167,6 +173,7 @@ TEST(ConnectionTest, EstablishingConnection) {
     fileDescriptorsVector[2].addWriteFd(write_fd1_m2);
     fileDescriptorsVector[2].addWriteFd(write_fd2_m2);
 
+    // Cleaning up threads
     t1.join();
     t2.join();
     t3.join();
